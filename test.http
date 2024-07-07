@@ -1,0 +1,10 @@
+POST http://localhost:10000/auth/register
+Content-Type: application/json 
+
+{
+    "firstname": "joshua",
+    "lastname": "amaechi", 
+    "email": "joshuaamaechi213@gnail.com",
+    "password": "djfanjk", 
+    "phone": "2919821988"
+}
