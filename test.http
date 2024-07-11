@@ -1,10 +1,23 @@
-POST http://localhost:10000/auth/register
-Content-Type: application/json 
+# POST http://localhost:10000/auth/register
+# Content-Type: application/json 
 
 {
-    "firstname": "joshua",
-    "lastname": "amaechi", 
-    "email": "joshuaamaechi213@gnail.com",
-    "password": "djfanjk", 
-    "phone": "2919821988"
+
+    "firstname": "cbg33r4f2v",
+    "lastname": "sdafa3hgh", 
+    "email": "442ggg4@gmail.com",
+    "password": "dddasrg4121ddd", 
+    "phone": "942326573308"
 }
+
+POST http://localhost:10000/auth/login
+Content-Type: application/json
+
+{
+    "email": "442ggg4@gmail.com",
+    "password": "dddasrg4121ddd"
+}
+
+
+# GET http://localhost:10000/api/users/3
+# Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIiLCJlbWFpbCI6IjQ0MmdnZzRAZ21haWwuY29tIiwiZXhwIjoxNzIwNzgwODc4fQ.QqzaxTg_pnSs7FrYz6a-KaCurBeImYQAly3c7vtnhSE

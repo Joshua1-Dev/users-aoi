@@ -9,5 +9,6 @@ type Organisation struct {
 	OrgID       string `gorm:"unique" json:"orgId"`
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
+	Users       []User `gorm:"many2many:user_organisations"`
 	
 }

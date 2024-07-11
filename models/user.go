@@ -1,20 +1,24 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"log"
+
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
 	UserID    string `gorm:"unique" json:"userId"`
-	FirstName string `json:"firstName" binding:"required"`
-	LastName  string `json:"lastName" binding:"required"`
+	FirstName string `json:"firstName" `
+	LastName  string `json:"lastName"`
 	Email     string `gorm:"unique" json:"email" binding:"required,email"`
 	Password  string `json:"password" binding:"required"`
 	Phone     string `json:"phone"`
 }
+
+
+
 
 func (u *User) BeforeSave(tx *gorm.DB) (err error) {
 	u.Password = hashPassword(u.Password)

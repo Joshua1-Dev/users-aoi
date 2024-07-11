@@ -2,29 +2,29 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"hng/models"
 	"hng/routes"
+	"os"
 
 	"github.com/gin-gonic/gin"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-
-
 func main() {
 
-	// Initialize Database connection
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dbName := os.Getenv("POSTGRES_DB")
+	dbHost := os.Getenv("POSTGRES_HOST")
+	dbPort := os.Getenv("POSTGRES_PORT")
+
+	// Form the connection string
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		dbHost, dbUser, dbPassword, dbName, dbPort)
+	
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{PrepareStmt: false})
 	if err != nil {
 		panic("Failed to connect to database")
 	}

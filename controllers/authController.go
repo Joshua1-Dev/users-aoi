@@ -4,23 +4,14 @@ import (
 	"hng/models"
 	"hng/utils"
 	"log"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
+
 	"gorm.io/gorm"
 )
-
-type RegisterInput struct {
-	FirstName string `json:"firstName" binding:"required"`
-	LastName  string `json:"lastName" binding:"required"`
-	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required"`
-	Phone     string `json:"phone"`
-}
-
-var validate *validator.Validate
 
 func hashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -30,72 +21,36 @@ func hashPassword(password string) string {
 	return string(bytes)
 }
 
+
 func Register(c *gin.Context) {
-	var input RegisterInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"errors": utils.ValidationErrors(err),
-		})
-		return
-	}
 
 	db := c.MustGet("db").(*gorm.DB)
 
-	// Check if email already exists
-	var existingUser models.User
-	if err := db.Where("email = ?", input.Email).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"errors": []utils.ValidationError{
-				{Field: "email", Message: "Email already exists"},
-			},
-		})
+	var input models.User
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"errors": utils.ValidationErrors(err)})
 		return
 	}
 
-	user := models.User{
-		UserID:    utils.GenerateUUID(),
-		FirstName: input.FirstName,
-		LastName:  input.LastName,
-		Email:     input.Email,
-		Password:  hashPassword(input.Password),
-		Phone:     input.Phone,
-	}
 
-	if err := db.Create(&user).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Create a default organisation for the user
+	// hashPassword(input.Password)
+	input.UserID = utils.GenerateUUID()
 	organisation := models.Organisation{
 		OrgID:       utils.GenerateUUID(),
 		Name:        input.FirstName + "'s Organisation",
-		Description: input.FirstName + "'s personal organisation",
+		Description: "Default organisation for " + input.FirstName,
+		Users:       []models.User{input},
 	}
-	db.Create(&organisation)
 
-	// Generate JWT token
-	token, err := utils.GenerateToken(user.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+	if err := db.Create(&organisation).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "Bad request", "message": "Registration unsuccessful. email exist", "statusCode": 400})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"status":  "success",
-		"message": "Registration successful",
-		"data": gin.H{
-			"accessToken": token,
-			"user": gin.H{
-				"userId":    user.UserID,
-				"firstName": user.FirstName,
-				"lastName":  user.LastName,
-				"email":     user.Email,
-				"phone":     user.Phone,
-			},
-		},
-	})
+	token, _ := utils.GenerateToken(input.Email)
+	c.JSON(http.StatusCreated, gin.H{"status": "success", "message": "Registration successful", "data": gin.H{"accessToken": token, "user": input}})
 }
+
 
 func Login(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)

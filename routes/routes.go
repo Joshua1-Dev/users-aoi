@@ -10,7 +10,7 @@ import (
 
 func AuthRoutes(r *gin.Engine, db *gorm.DB) {
 	auth := r.Group("/auth")
-	auth.Use(dbMiddleware(db))
+	auth.Use(DbMiddleware(db))
 	{
 		auth.POST("/register", controllers.Register)
 		auth.POST("/login", controllers.Login)
@@ -19,24 +19,31 @@ func AuthRoutes(r *gin.Engine, db *gorm.DB) {
 
 func UserRoutes(r *gin.Engine, db *gorm.DB) {
 	user := r.Group("/api/users")
-	user.Use(dbMiddleware(db), authMiddleware())
+	user.Use(DbMiddleware(db), authMiddleware())
 	{
 		user.GET("/:id", controllers.GetUser)
 	}
 }
 
 func OrganisationRoutes(r *gin.Engine, db *gorm.DB) {
+	po := r.Group("/api")
+	po.Use(DbMiddleware(db))
+	{
+		po.POST("organisations/:orgId/users", controllers.AddUserToOrganisation)
+	}
+
 	org := r.Group("/api/organisations")
-	org.Use(dbMiddleware(db), authMiddleware())
+	
+	org.Use(DbMiddleware(db), authMiddleware())
 	{
 		org.GET("/", controllers.GetOrganisations)
 		org.GET("/:orgId", controllers.GetOrganisation)
 		org.POST("/", controllers.CreateOrganisation)
-		org.POST("/:orgId/users", controllers.AddUserToOrganisation)
+		
 	}
 }
 
-func dbMiddleware(db *gorm.DB) gin.HandlerFunc {
+func DbMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("db", db)
 		c.Next()

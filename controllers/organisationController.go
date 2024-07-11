@@ -1,9 +1,10 @@
 package controllers
 
 import (
-	"hng/utils"
-	"net/http"
 	"hng/models"
+	"hng/utils"
+	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -11,12 +12,13 @@ import (
 
 func GetOrganisations(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
-	userID := c.MustGet("userId").(string)
-
+	
 	var organisations []models.Organisation
-	db.Joins("JOIN user_organisations ON organisations.id = user_organisations.organisation_id").
-		Where("user_organisations.user_id = ?", userID).
-		Find(&organisations)
+	if err := db.Find(&organisations).Error; err != nil {
+		log.Printf("Error retrieving organisations: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal server error", "message": "Could not retrieve organisations"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Organisations found", "data": gin.H{"organisations": organisations}})
 }
@@ -48,8 +50,6 @@ func CreateOrganisation(c *gin.Context) {
 
 	var user models.User
 	db.First(&user, "user_id = ?", userID)
-
-	
 
 	if err := db.Create(&input).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "Bad request", "message": "Organisation creation unsuccessful", "statusCode": 400})
